@@ -184,7 +184,7 @@ fi
 
 if [[ "$SORT_ORDER" == desc ]]; then sort -z -t $'\t' -k1,1nr "$RAW_FILE" > "$SORTED_FILE"
 else sort -z -t $'\t' -k1,1n "$RAW_FILE" > "$SORTED_FILE"; fi
-TOTAL=$(python3 -c 'import sys; print(open(sys.argv[1],"rb").read().count(b"\\0"))' "$SORTED_FILE")
+TOTAL=$(python3 -c 'import sys; print(open(sys.argv[1],"rb").read().count(b"\0"))' "$SORTED_FILE")
 printf 'Matching files: %s\n\n' "$TOTAL"
 
 printf '%-14s %s\n' 'FILE SIZE' 'FULL PATH'
