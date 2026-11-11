@@ -1,5 +1,62 @@
 #!/usr/bin/env bash
-# disk-monitor.sh — live Linux disk capacity and I/O dashboard
+# =============================================================================
+# Linux Disk Monitor Dashboard
+# =============================================================================
+# DESCRIPTION
+#   Live terminal dashboard for physical disks, filesystem capacity, device
+#   read/write throughput, and processes ranked by I/O activity.
+#
+# INSTALLATION
+#   Debian / Ubuntu:
+#     sudo apt update
+#     sudo apt install -y bash util-linux coreutils gawk procps
+#
+#   Fedora / RHEL:
+#     sudo dnf install -y bash util-linux coreutils gawk procps-ng
+#
+#   Arch Linux:
+#     sudo pacman -S --needed bash util-linux coreutils gawk procps-ng
+#
+#   Save this file as disk-monitor.sh, then make it executable:
+#     chmod +x disk-monitor.sh
+#
+# USAGE
+#   ./disk-monitor.sh [OPTIONS]
+#
+#   Recommended (root provides visibility into more process I/O counters):
+#     sudo ./disk-monitor.sh
+#
+# OPTIONS
+#   --asc             Sort top processes by I/O rate, lowest first.
+#   --desc            Sort top processes by I/O rate, highest first (default).
+#   --interval=SEC    Refresh interval in whole seconds (default: 2).
+#   --top=N           Number of processes to display (default: 10).
+#   -h, --help        Show usage information and exit.
+#
+# EXAMPLES
+#   sudo ./disk-monitor.sh
+#   sudo ./disk-monitor.sh --asc
+#   sudo ./disk-monitor.sh --desc --interval=3
+#   sudo ./disk-monitor.sh --top=20 --interval=5
+#   ./disk-monitor.sh --help
+#
+# DASHBOARD LEGEND
+#   Red   = filesystem space used
+#   Green = filesystem space available
+#   Grey  = remaining bar width / rounding remainder
+#   Device throughput is displayed in bytes per second.
+#   Process I/O is sampled from /proc/<PID>/io and displayed in bytes/second.
+#
+# NOTES
+#   - Linux only; requires /proc, lsblk, df, awk, sort, and standard utilities.
+#   - Root is recommended for the most complete per-process I/O visibility.
+#   - Process I/O counters are not identical to physical-device throughput:
+#     caching, buffering, writeback, and filesystem behavior affect attribution.
+#   - Capacity is reported for mounted filesystems associated with each disk.
+#     Unmounted partitions and filesystems may not have a capacity bar.
+#   - This script is read-only. It does not format, mount, or modify disks.
+#   - Press Ctrl+C to exit the dashboard.
+# =============================================================================
 set -Eeuo pipefail
 export LC_ALL=C
 
@@ -13,7 +70,7 @@ for arg in "$@"; do
     --interval=*) INTERVAL="${arg#*=}" ;;
     --top=*) TOP_N="${arg#*=}" ;;
     -h|--help)
-      echo "Usage: $0 [--asc|--desc] [--interval=SECONDS] [--top=N]"
+      sed -n '1,82p' "$0" | sed 's/^#\?//' | sed 's/^ //'
       exit 0 ;;
     *) echo "Unknown option: $arg" >&2; exit 2 ;;
   esac
