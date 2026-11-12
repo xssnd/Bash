@@ -51,7 +51,7 @@
 #   ./empty_files_finder.sh --path /home --type dirs
 #
 # Exclude virtual or pseudo filesystems when scanning from root:
-#   sudo ./empty_files_finder.sh --path / --exclude /proc --exclude /sys \\
+#   sudo ./empty_files_finder.sh --path / --exclude /proc --exclude /sys \
 #       --exclude /dev --exclude /run --one-file-system
 #
 # Save results to a report:
