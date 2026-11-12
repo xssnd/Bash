@@ -189,7 +189,11 @@ if (("${#EXCLUDES[@]}" > 0)); then
   done
   FIND_ARGS+=(")" -prune -o)
 fi
-FIND_ARGS+=(-type f -size +"$((MIN_SIZE - 1))"c -print0)
+FIND_ARGS+=(-type f)
+if ((MIN_SIZE > 0)); then
+  FIND_ARGS+=(-size +"$((MIN_SIZE - 1))"c)
+fi
+FIND_ARGS+=(-print0)
 
 banner
 line
@@ -251,7 +255,6 @@ REPORT="$TMP_DIR/report"
   line
   printf '  Files discovered : %d\n' "$FILE_COUNT"
   printf '  Files hashed     : %d\n' "$HASHED_COUNT"
-  printf '  Duplicate groups : %d\n' "${#HASH_COUNTS[@]}"
   for hash in "${!HASH_COUNTS[@]}"; do
     count=${HASH_COUNTS[$hash]}
     if ((count > 1)); then
