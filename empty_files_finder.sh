@@ -186,7 +186,6 @@ case "$SCAN_TYPE" in
     dirs)  FIND_ARGS+=(-type d -empty) ;;
     both)  FIND_ARGS+=("(" -type f -size 0c -o -type d -empty ")") ;;
 esac
-FIND_ARGS+=(-print0)
 
 # ---------------------------------------------------------------------------
 # Scan
