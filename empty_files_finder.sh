@@ -4,14 +4,73 @@
 # Modern, read-only empty file and directory scanner for Linux.
 # Requires Bash 4+ and GNU findutils/coreutils.
 #
-# Version: 1.0.1
+# ===========================================================================
+# INSTALLATION GUIDE
+# ===========================================================================
+# 1) Install dependencies (most Linux distributions already include Bash and
+#    coreutils; install findutils if the "find" command is missing):
+#
+#    Debian / Ubuntu:
+#      sudo apt update
+#      sudo apt install -y bash findutils coreutils
+#
+#    Fedora / RHEL:
+#      sudo dnf install -y bash findutils coreutils
+#
+#    Arch Linux:
+#      sudo pacman -S --needed bash findutils coreutils
+#
+# 2) Download this script:
+#      curl -fLO https://raw.githubusercontent.com/xssnd/Bash/main/empty_files_finder.sh
+#
+#    Or clone the repository:
+#      git clone https://github.com/xssnd/Bash.git
+#      cd Bash
+#
+# 3) Make it executable and run it:
+#      chmod +x empty_files_finder.sh
+#      ./empty_files_finder.sh --help
+#      ./empty_files_finder.sh
+#
+# 4) Optional: install for your user so it can run from any directory:
+#      mkdir -p "$HOME/.local/bin"
+#      install -m 0755 empty_files_finder.sh "$HOME/.local/bin/empty_files_finder"
+#    Ensure "$HOME/.local/bin" is included in your PATH.
+#
+# ===========================================================================
+# USAGE EXAMPLES
+# ===========================================================================
+# Scan current directory (files and directories):
+#   ./empty_files_finder.sh
+#
+# Scan a specific directory:
+#   ./empty_files_finder.sh --path "$HOME"
+#
+# Find only zero-byte files / only empty directories:
+#   ./empty_files_finder.sh --path /var/log --type files
+#   ./empty_files_finder.sh --path /home --type dirs
+#
+# Exclude virtual or pseudo filesystems when scanning from root:
+#   sudo ./empty_files_finder.sh --path / --exclude /proc --exclude /sys \\
+#       --exclude /dev --exclude /run --one-file-system
+#
+# Save results to a report:
+#   ./empty_files_finder.sh --path "$HOME" --output empty-report.txt
+#
+# Show help and version:
+#   ./empty_files_finder.sh --help
+#   ./empty_files_finder.sh --version
+#
+# SAFETY: This utility is read-only. It never deletes or modifies scan results.
+#
+# Version: 1.0.2
 # License: MIT
 #
 
 set -uo pipefail
 
 SCRIPT_NAME="empty_files_finder.sh"
-VERSION="1.0.1"
+VERSION="1.0.2"
 
 SCAN_PATH="."
 SCAN_TYPE="both"
@@ -66,6 +125,13 @@ usage() {
     cat <<EOF
 USAGE:
   ./$SCRIPT_NAME [OPTIONS]
+
+INSTALL (quick start):
+  Debian/Ubuntu: sudo apt install -y bash findutils coreutils
+  Fedora/RHEL : sudo dnf install -y bash findutils coreutils
+  Arch        : sudo pacman -S --needed bash findutils coreutils
+  Download    : curl -fLO https://raw.githubusercontent.com/xssnd/Bash/main/empty_files_finder.sh
+  Run         : chmod +x empty_files_finder.sh && ./empty_files_finder.sh
 
 OPTIONS:
   -p, --path PATH       Root directory to scan (default: .)
