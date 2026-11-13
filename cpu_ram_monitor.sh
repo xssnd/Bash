@@ -174,9 +174,9 @@ while :; do
     fi
     run_target "$target" "$TMP_DIR/host-$i.txt" &
     ((batch+=1))
-    if ((batch>=PARALLEL)); then wait; batch=0; fi
+    if ((batch>=PARALLEL)); then wait || true; batch=0; fi
   done
-  ((batch==0)) || wait
+  ((batch==0)) || wait || true
 
   for ((i=0;i<${#HOSTS[@]};i++)); do
     file="$TMP_DIR/host-$i.txt"
