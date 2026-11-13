@@ -134,7 +134,7 @@ collect_agent() {
   printf 'NETWORK: default-route=%s | listening-sockets=%s\n' "$route" "$sockets"
   printf 'SECURITY: firewall=%s | reboot-required=%s\n' "$fw" "$reboot"
   printf 'TOP CPU PROCESSES:\n'
-  ps -eo pid,comm,%cpu,%mem --sort=-%cpu 2>/dev/null | head -n 6 | sed 's/^/  /'
+  ps -eo pid,comm,%cpu,%mem --sort=-%cpu 2>/dev/null | sed -n '1,6p' | sed 's/^/  /'
   if ((${#SERVICES[@]})); then
     printf 'REQUESTED SERVICES:\n'
     for service in "${SERVICES[@]}"; do
