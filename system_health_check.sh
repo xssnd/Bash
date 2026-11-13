@@ -210,7 +210,7 @@ PY
 fi
 
 mapfile -t HOSTS < <(sed 's/[[:space:]]*#.*$//' "$HOSTS_FILE" | awk 'NF {print $1}')
-(("${#HOSTS[@]}")) || die "No hosts found in $HOSTS_FILE"
+(( ${#HOSTS[@]} > 0 )) || die "No hosts found in $HOSTS_FILE"
 printf '\033[1;36mSYSTEM HEALTH CHECK\033[0m version %s\n' "$VERSION"
 printf 'Targets: %d | Parallel batch size: %d | SSH port: %s | Strict host-key checking: enabled\n\n' "${#HOSTS[@]}" "$PARALLEL" "$SSH_PORT"
 
