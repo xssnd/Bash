@@ -57,7 +57,7 @@ OUTPUT=""
 JSON=0
 AGENT=0
 SERVICES=()
-SCRIPT_PATH="$(readlink -f -- "$${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "$${BASH_SOURCE[0]}")"
+SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")"
 
 usage() { sed -n '1,51p' "$0" | sed 's/^#//' | sed 's/^ //'; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 2; }
@@ -122,11 +122,11 @@ collect_agent() {
 
   if awk -v x="$mp" -v t="$MEM_WARN" 'BEGIN{exit !(x>=t)}'; then status="WARN"; reasons+="RAM $mp% (limit $MEM_WARN%), "; fi
   if (( rp >= DISK_WARN )); then status="WARN"; reasons+="root filesystem $rp% (limit $DISK_WARN%), "; fi
+  if (( iproc >= DISK_WARN )); then status="WARN"; reasons+="root inode usage $iproc% (limit $DISK_WARN%), "; fi
   if awk -v x="$load" -v c="$cores" -v t="$CPU_WARN" 'BEGIN{split(x,a," "); exit !(a[1]/c>=t)}'; then status="WARN"; reasons+="load/core high, "; fi
   if [[ "$failed" =~ ^[0-9]+$ ]] && (( failed > 0 )); then status="WARN"; reasons+="$failed failed systemd unit(s), "; fi
   if [[ "$reboot" == yes ]]; then status="WARN"; reasons+="reboot required, "; fi
 
-  printf 'HOST: %s\nSTATUS: %s\n' "$host" "$status"
   printf 'SYSTEM: kernel=%s | uptime=%s | CPUs=%s | load=%s\n' "$kernel" "$up" "$cores" "$load"
   printf 'MEMORY: used=%s%% | total=%s MiB | available=%s MiB | swap=%s%%\n' "$mp" "$((mt/1024))" "$((ma/1024))" "$sp"
   printf 'STORAGE: root=%s%% | root-inodes=%s%%\n' "$rp" "$iproc"
@@ -135,16 +135,17 @@ collect_agent() {
   printf 'SECURITY: firewall=%s | reboot-required=%s\n' "$fw" "$reboot"
   printf 'TOP CPU PROCESSES:\n'
   ps -eo pid,comm,%cpu,%mem --sort=-%cpu 2>/dev/null | head -n 6 | sed 's/^/  /'
-  if (("$${#SERVICES[@]}")); then
+  if (("${#SERVICES[@]}")); then
     printf 'REQUESTED SERVICES:\n'
-    for service in "$${SERVICES[@]}"; do
+    for service in "${SERVICES[@]}"; do
       active="unknown"
       if command -v systemctl >/dev/null 2>&1; then active=$(systemctl is-active "$service" 2>/dev/null || true); [[ -n "$active" ]] || active="inactive"; fi
       printf '  %s: %s\n' "$service" "$active"
       if [[ "$active" != active ]]; then status="WARN"; reasons+="service $service=$active, "; fi
     done
   fi
-  printf 'DETAIL: %s\n' "$${reasons:-No configured warning threshold exceeded.}"
+  printf 'HOST: %s\nSTATUS: %s\n' "$host" "$status"
+  printf 'DETAIL: %s\n' "${reasons:-No configured warning threshold exceeded.}"
 }
 
 if (( AGENT )); then collect_agent; exit 0; fi
@@ -159,8 +160,8 @@ fi
 
 run_local() {
   local args=(--agent --cpu-warn "$CPU_WARN" --memory-warn "$MEM_WARN" --disk-warn "$DISK_WARN") s
-  for s in "$${SERVICES[@]}"; do args+=(--service "$s"); done
-  "$SCRIPT_PATH" "$${args[@]}"
+  for s in "${SERVICES[@]}"; do args+=(--service "$s"); done
+  "$SCRIPT_PATH" "${args[@]}"
 }
 
 run_remote() {
@@ -169,15 +170,15 @@ run_remote() {
   local remote_args=(--agent --cpu-warn "$CPU_WARN" --memory-warn "$MEM_WARN" --disk-warn "$DISK_WARN") s
   [[ -z "$SSH_USER" ]] || ssh_args+=(-l "$SSH_USER")
   [[ -z "$IDENTITY" ]] || ssh_args+=(-i "$IDENTITY")
-  for s in "$${SERVICES[@]}"; do remote_args+=(--service "$s"); done
+  for s in "${SERVICES[@]}"; do remote_args+=(--service "$s"); done
   {
     printf 'HOST TARGET: %s\n' "$target"
-    if ssh "$${ssh_args[@]}" "$target" "bash -s -- $(printf '%q ' "$${remote_args[@]}")" < "$SCRIPT_PATH"; then :
+    if ssh "${ssh_args[@]}" "$target" "bash -s -- $(printf '%q ' "${remote_args[@]}")" < "$SCRIPT_PATH"; then :
     else printf 'STATUS: UNKNOWN\nDETAIL: SSH failed. Check key access, known_hosts, network and remote Bash.\n'; fi
   } > "$outfile" 2>&1
 }
 
-TMP_DIR=$(mktemp -d "$${TMPDIR:-/tmp}/system-health.XXXXXX") || die "Cannot create temporary directory"
+TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/system-health.XXXXXX") || die "Cannot create temporary directory"
 cleanup() { rm -rf -- "$TMP_DIR"; }
 trap cleanup EXIT INT TERM
 
@@ -209,14 +210,14 @@ PY
 fi
 
 mapfile -t HOSTS < <(sed 's/[[:space:]]*#.*$//' "$HOSTS_FILE" | awk 'NF {print $1}')
-(("$${#HOSTS[@]}")) || die "No hosts found in $HOSTS_FILE"
+(("${#HOSTS[@]}")) || die "No hosts found in $HOSTS_FILE"
 printf '\033[1;36mSYSTEM HEALTH CHECK\033[0m version %s\n' "$VERSION"
-printf 'Targets: %d | Parallel batch size: %d | SSH port: %s | Strict host-key checking: enabled\n\n' "$${#HOSTS[@]}" "$PARALLEL" "$SSH_PORT"
+printf 'Targets: %d | Parallel batch size: %d | SSH port: %s | Strict host-key checking: enabled\n\n' "${#HOSTS[@]}" "$PARALLEL" "$SSH_PORT"
 
 batch=0
 for ((i=0; i<${#HOSTS[@]}; i++)); do
-  target=$${HOSTS[$i]}
-  [[ "$target" =~ ^[a-zA-Z0-9._@:-]+$ ]] || { printf 'Skipping invalid host: %s\n' "$target" >&2; continue; }
+  target=${HOSTS[$i]}
+  [[ "$target" =~ ^[a-zA-Z0-9][a-zA-Z0-9._@:-]*$ ]] || { printf 'Skipping invalid host: %s\n' "$target" >&2; continue; }
   run_remote "$target" "$TMP_DIR/host-$i.txt" &
   ((batch+=1))
   if (( batch >= PARALLEL )); then wait; batch=0; fi
@@ -231,7 +232,7 @@ for ((i=0; i<${#HOSTS[@]}; i++)); do
   grep -q '^STATUS: WARN\|^STATUS: UNKNOWN' "$file" && overall=1 || true
 done
 printf '%s\n' '----------------------------------------------------------------'
-printf 'Completed: %s | Hosts: %d | Overall: %s\n' "$(date '+%F %T %Z')" "$${#HOSTS[@]}" "$([[ $overall -eq 0 ]] && printf OK || printf WARN/UNKNOWN)"
+printf 'Completed: %s | Hosts: %d | Overall: %s\n' "$(date '+%F %T %Z')" "${#HOSTS[@]}" "$([[ $overall -eq 0 ]] && printf OK || printf WARN/UNKNOWN)"
 if [[ -n "$OUTPUT" ]]; then
   { printf 'SYSTEM HEALTH REPORT | %s\n' "$(date '+%F %T %Z')"; for ((i=0; i<${#HOSTS[@]}; i++)); do [[ -f "$TMP_DIR/host-$i.txt" ]] && cat "$TMP_DIR/host-$i.txt"; done; } > "$OUTPUT"
   printf 'Report saved: %s\n' "$OUTPUT"
