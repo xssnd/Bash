@@ -135,7 +135,7 @@ collect_agent() {
   printf 'SECURITY: firewall=%s | reboot-required=%s\n' "$fw" "$reboot"
   printf 'TOP CPU PROCESSES:\n'
   ps -eo pid,comm,%cpu,%mem --sort=-%cpu 2>/dev/null | head -n 6 | sed 's/^/  /'
-  if (("${#SERVICES[@]}")); then
+  if ((${#SERVICES[@]})); then
     printf 'REQUESTED SERVICES:\n'
     for service in "${SERVICES[@]}"; do
       active="unknown"
