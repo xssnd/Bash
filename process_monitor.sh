@@ -55,7 +55,8 @@ USER_UID=""
 PID_FILTER=""
 CONTAINS=""
 JSON=0
-NO_COLOR=0
+DISABLE_COLOR=0
+if [[ -n "${NO_COLOR:-}" ]]; then DISABLE_COLOR=1; fi
 
 usage() {
   sed -n '2,44p' "$0" | sed 's/^# //' | sed 's/^#$//'
@@ -82,7 +83,7 @@ while (($#)); do
     --pid) need_value "$@"; PID_FILTER=$2; shift 2 ;;
     --contains) need_value "$@"; CONTAINS=$2; shift 2 ;;
     --json) JSON=1; shift ;;
-    --no-color) NO_COLOR=1; shift ;;
+    --no-color) DISABLE_COLOR=1; shift ;;
     -h|--help) usage; exit 0 ;;
     --) shift; (($# == 0)) || die "Positional arguments are not supported" ;;
     *) die "Unknown option: $1 (use --help)" ;;
@@ -207,7 +208,7 @@ PY
 
 render_table() {
   local sample=$1 total=$2 pid ppid user state cpu mem rss vsz elapsed command color_reset="" color_bold="" color_cyan=""
-  if [[ "$NO_COLOR" == 0 && -t 1 && "${TERM:-dumb}" != dumb && -z "${NO_COLOR:-}" ]]; then
+  if [[ "$DISABLE_COLOR" == 0 && -t 1 && "${TERM:-dumb}" != dumb ]]; then
     color_reset=$'\033[0m'; color_bold=$'\033[1m'; color_cyan=$'\033[36m'
   fi
   if [[ -t 1 && "$WATCH" == 1 ]]; then
