@@ -139,8 +139,7 @@ collect_processes() {
       if (wanted_pid != "" && $1 != wanted_pid) next
       if (needle != "" && index(tolower(command), tolower(needle)) == 0) next
       gsub(/[\t\r\n]/, " ", command)
-      printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", \\
-        $1, $2, $4, $5, $6, $7, $8, $9, $10, command
+      printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",  $1, $2, $4, $5, $6, $7, $8, $9, $10, command
     }
   ' "$RAW_FILE" > "$ROWS_FILE"
 
@@ -224,16 +223,14 @@ render_table() {
   [[ -z "$USER_FILTER" ]] || printf 'Filter user: %s\n' "$USER_FILTER"
   [[ -z "$PID_FILTER" ]] || printf 'Filter PID: %s\n' "$PID_FILTER"
   [[ -z "$CONTAINS" ]] || printf 'Command contains: %s\n' "$CONTAINS"
-  printf '\n%s%-7s %-7s %-10s %-5s %7s %7s %10s %10s %-10s %s%s\n' \\
-    "$color_cyan" PID PPID USER STAT CPU% MEM% RSS_KiB VSZ_KiB ELAPSED COMMAND "$color_reset"
+  printf '\n%s%-7s %-7s %-10s %-5s %7s %7s %10s %10s %-10s %s%s\n'  "$color_cyan" PID PPID USER STAT CPU% MEM% RSS_KiB VSZ_KiB ELAPSED COMMAND "$color_reset"
 
   local shown=0
   while IFS=$'\t' read -r pid ppid user state cpu mem rss vsz elapsed command; do
     ((shown+=1))
     (( shown <= TOP )) || break
     command=${command:0:90}
-    printf '%-7s %-7s %-10s %-5s %7s %7s %10s %10s %-10s %s\n' \\
-      "$pid" "$ppid" "$user" "$state" "$cpu" "$mem" "$rss" "$vsz" "$elapsed" "$command"
+    printf '%-7s %-7s %-10s %-5s %7s %7s %10s %10s %-10s %s\n'  "$pid" "$ppid" "$user" "$state" "$cpu" "$mem" "$rss" "$vsz" "$elapsed" "$command"
   done < "$SORTED_FILE"
 
   if (( total == 0 )); then
